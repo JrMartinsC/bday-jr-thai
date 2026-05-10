@@ -87,78 +87,107 @@ setInterval(rotateQuotes, 10000);
 // FORMULÁRIO E INTEGRAÇÃO COM SHEETS
 // ========================================
 
-const form = document.getElementById('confirmForm');
-const successMessage = document.getElementById('successMessage');
-const submitBtn = document.getElementById('submitBtn');
-const newResponseBtn = document.getElementById('newResponseBtn');
-const companionsInput = document.getElementById('companions');
-const minusBtn = document.getElementById('minusBtn');
-const plusBtn = document.getElementById('plusBtn');
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('confirmForm');
+    const successMessage = document.getElementById('successMessage');
+    const submitBtn = document.getElementById('submitBtn');
+    const newResponseBtn = document.getElementById('newResponseBtn');
+    const companionsInput = document.getElementById('companions');
+    const minusBtn = document.getElementById('minusBtn');
+    const plusBtn = document.getElementById('plusBtn');
 
-// Controle de acompanhantes
-minusBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    const current = parseInt(companionsInput.value) || 0;
-    if (current > 0) {
-        companionsInput.value = current - 1;
-    }
-});
-
-plusBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    const current = parseInt(companionsInput.value) || 0;
-    if (current < 10) {
-        companionsInput.value = current + 1;
-    }
-});
-
-// Envio do formulário
-form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    // Coleta dados
-    const formData = {
-        timestamp: new Date().toLocaleString('pt-BR'),
-        name: document.getElementById('name').value.trim(),
-        attending: document.querySelector('input[name="attending"]:checked').value,
-        companions: parseInt(companionsInput.value) || 0,
-        message: document.getElementById('message').value.trim(),
-    };
-
-    // Validação básica
-    if (!formData.name) {
-        alert('Por favor, preenche seu nome! 😊');
-        return;
+    // Controle de acompanhantes
+    if (minusBtn && companionsInput) {
+        minusBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const current = parseInt(companionsInput.value) || 0;
+            if (current > 0) {
+                companionsInput.value = current - 1;
+            }
+        });
     }
 
-    // Mostrar loading
-    submitBtn.classList.add('loading');
-    submitBtn.disabled = true;
-
-    try {
-        // Enviar para Google Sheets
-        await sendToGoogleSheets(formData);
-
-        // Mostrar mensagem de sucesso
-        showSuccessMessage(formData);
-
-        // Resetar form
-        form.reset();
-        companionsInput.value = '0';
-    } catch (error) {
-        console.error('Erro ao enviar:', error);
-        alert('Houve um erro ao confirmar sua presença. Tenta novamente! 😅');
-    } finally {
-        submitBtn.classList.remove('loading');
-        submitBtn.disabled = false;
+    if (plusBtn && companionsInput) {
+        plusBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const current = parseInt(companionsInput.value) || 0;
+            if (current < 10) {
+                companionsInput.value = current + 1;
+            }
+        });
     }
+
+    // Envio do formulário
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const nameInput = document.getElementById('name');
+            const messageInput = document.getElementById('message');
+            const attendingInput = document.querySelector('input[name="attending"]:checked');
+
+            if (!nameInput || !attendingInput) {
+                alert('Por favor, preencha todos os campos obrigatórios!');
+                return;
+            }
+
+            // Coleta dados
+            const formData = {
+                timestamp: new Date().toLocaleString('pt-BR'),
+                name: nameInput.value.trim(),
+                attending: attendingInput.value,
+                companions: companionsInput ? parseInt(companionsInput.value) || 0 : 0,
+                message: messageInput ? messageInput.value.trim() : '',
+            };
+
+            // Validação básica
+            if (!formData.name) {
+                alert('Por favor, preenche seu nome! 😊');
+                return;
+            }
+
+            // Mostrar loading
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+
+            try {
+                // Enviar para Google Sheets
+                await sendToGoogleSheets(formData);
+
+                // Mostrar mensagem de sucesso
+                showSuccessMessage(formData, successMessage, form, companionsInput);
+
+                // Resetar form
+                form.reset();
+                if (companionsInput) companionsInput.value = '0';
+            } catch (error) {
+                console.error('Erro ao enviar:', error);
+                alert('Houve um erro ao confirmar sua presença. Tenta novamente! 😅');
+            } finally {
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+            }
+        });
+    }
+
+    // Voltar para novo envio
+    if (newResponseBtn && successMessage) {
+        newResponseBtn.addEventListener('click', () => {
+            successMessage.classList.remove('show');
+        });
+    }
+
+    // Carregar dados
+    loadAndDisplayData();
+    setInterval(loadAndDisplayData, 30000);
 });
 
 // Enviar dados para Google Apps Script
 async function sendToGoogleSheets(data) {
+    console.log('Enviando dados...', data);
+    
     if (!GOOGLE_SCRIPT_URL) {
         console.warn('Google Script URL não configurada. Usando localStorage como fallback.');
-        // Fallback: salvar em localStorage
         saveToLocalStorage(data);
         return;
     }
@@ -167,17 +196,16 @@ async function sendToGoogleSheets(data) {
         const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json',
+            },
             body: JSON.stringify(data),
         });
 
-        // Com no-cors não conseguimos ler a resposta, então confiamos que foi enviado
         console.log('Dados enviados para Google Sheets');
-        
-        // Também salvar localmente como backup
         saveToLocalStorage(data);
     } catch (error) {
         console.error('Erro ao enviar para Sheets:', error);
-        // Fallback para localStorage
         saveToLocalStorage(data);
     }
 }
@@ -191,7 +219,9 @@ function saveToLocalStorage(data) {
 }
 
 // Mostrar mensagem de sucesso
-function showSuccessMessage(data) {
+function showSuccessMessage(data, successMessage, form, companionsInput) {
+    if (!successMessage) return;
+    
     const successText = document.getElementById('successText');
     const totalGuests = parseInt(data.companions) + 1;
     
@@ -206,7 +236,9 @@ function showSuccessMessage(data) {
         mensaje += 'Que pena, mas tudo bem! Fica para a próxima! 💔';
     }
 
-    successText.textContent = 'Sua presença foi anotada! O casal ficou feliz!';
+    if (successText) {
+        successText.textContent = 'Sua presença foi anotada! O casal ficou feliz!';
+    }
     
     successMessage.classList.add('show');
     
@@ -215,11 +247,6 @@ function showSuccessMessage(data) {
         successMessage.classList.remove('show');
     }, 3000);
 }
-
-// Voltar para novo envio
-newResponseBtn.addEventListener('click', () => {
-    successMessage.classList.remove('show');
-});
 
 // ========================================
 // CARREGAR DADOS DO LOCALSTORAGE
@@ -288,36 +315,38 @@ setInterval(loadAndDisplayData, 30000);
 // COMPARTILHAMENTO
 // ========================================
 
-const shareBtn = document.getElementById('shareBtn');
+document.addEventListener('DOMContentLoaded', function() {
+    const shareBtn = document.getElementById('shareBtn');
 
-if (shareBtn) {
-    shareBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        const url = window.location.href;
-        const message = '🎉 VEM COMIGO NESSA FESTA! 🎉\n\nJuju & Thai tão fazendo aniversário!\n\n📅 16 de MAIO\n🕕 17h\n🔥 Família, Amigos, Resenha, Música boa!\n\nClica aqui → ${url}\n\nQuanto mais gente, melhor! 🎊';
-
-        const text = encodeURIComponent(message);
-
-        // Detectar se é mobile
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-        if (navigator.share) {
-            navigator.share({
-                title: 'Aniversário Juju & Thai',
-                text: 'Vem comigo nessa festa!',
-                url: url,
-            }).catch(err => console.log('Compartilhamento cancelado'));
-        } else {
-            // WhatsApp Web ou App
-            const whatsappUrl = isMobile 
-                ? `https://wa.me/?text=${text}`
-                : `https://web.whatsapp.com/send?text=${text}`;
+    if (shareBtn) {
+        shareBtn.addEventListener('click', function(e) {
+            e.preventDefault();
             
-            window.open(whatsappUrl, '_blank');
-        }
-    });
-}
+            const url = window.location.href;
+            const message = `🎉 VEM COMIGO NESSA FESTA! 🎉\n\nJuju & Thai tão fazendo aniversário!\n\n📅 16 de MAIO\n🕕 17h\n🔥 Família, Amigos, Resenha, Música boa!\n\nClica aqui → ${url}\n\nQuanto mais gente, melhor! 🎊`;
+
+            const text = encodeURIComponent(message);
+
+            // Detectar se é mobile
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Aniversário Juju & Thai',
+                    text: 'Vem comigo nessa festa!',
+                    url: url,
+                }).catch(err => console.log('Compartilhamento cancelado'));
+            } else {
+                // WhatsApp Web ou App
+                const whatsappUrl = isMobile 
+                    ? `https://wa.me/?text=${text}`
+                    : `https://web.whatsapp.com/send?text=${text}`;
+                
+                window.open(whatsappUrl, '_blank');
+            }
+        });
+    }
+});
 
 // ========================================
 // DETECÇÃO DE TEMA E DARK MODE
