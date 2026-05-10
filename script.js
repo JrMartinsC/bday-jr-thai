@@ -295,17 +295,7 @@ if (shareBtn) {
         e.preventDefault();
         
         const url = window.location.href;
-        const message = `🎉 VEM COMIGO NESSA FESTA! 🎉
-
-Juju & Thai tão fazendo aniversário!
-
-📅 16 de MAIO
-🕕 17h
-🔥 Família, Amigos, Resenha, Música boa!
-
-Clica aqui → ${url}
-
-Quanto mais gente, melhor! 🎊`;
+        const message = `🎉 VEM COMIGO NESSA FESTA! 🎉\n\nJuju & Thai tão fazendo aniversário!\n\n📅 16 de MAIO\n🕕 17h\n🔥 Família, Amigos, Resenha, Música boa!\n\nClica aqui → ${url}\n\nQuanto mais gente, melhor! 🎊`;
 
         const text = encodeURIComponent(message);
 
