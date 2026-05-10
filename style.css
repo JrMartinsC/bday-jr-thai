@@ -412,7 +412,7 @@ body {
 .fun-quotes {
     text-align: center;
     margin: 40px 0;
-    padding: 20px;
+    padding: 0;             
 }
 
 .quote-container {
@@ -422,6 +422,7 @@ body {
     padding: 25px;
     box-shadow: var(--shadow-sm);
     animation: fadeIn 1s ease-in-out;
+   border: 2px solid rgba(0, 127, 63, 0.3);
 }
 
 .quote {
