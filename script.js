@@ -293,14 +293,14 @@ const shareBtn = document.getElementById('shareBtn');
 shareBtn.addEventListener('click', () => {
     const url = window.location.href;
     const text = encodeURIComponent(
-        `🎉 Vem conferir meu convite B-day Jr e Thai! Churrasco, pagode, família, resenha... tá na conta! 🔥\n\nConfirma tua presença aqui: ${url}`
+        `🎉 VEM COMIGO NESSA FESTA! 🎉\n\nJuju & Thai tão fazendo aniversário!\n\n📅 16 de MAIO\n🕕 17h\n🔥 Família, Amigos, Resenha, Música boa!\n\nCLICA AQUI → ${url}\n\nQuanto mais gente, melhor! 🎊`
     );
 
     // Tentar usar Web Share API (mobile)
     if (navigator.share) {
         navigator.share({
-            title: 'Aniversário do Jr e Thai',
-            text: 'Vem conferir meu convite! Churrasco, pagode, família, resenha... tá na conta! 🔥',
+            title: 'Aniversário Juju & Thai',
+            text: 'Vem comigo nessa festa!',
             url: url,
         }).catch(err => console.log('Erro ao compartilhar:', err));
     } else {
