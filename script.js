@@ -290,25 +290,44 @@ setInterval(loadAndDisplayData, 30000);
 
 const shareBtn = document.getElementById('shareBtn');
 
-shareBtn.addEventListener('click', () => {
-    const url = window.location.href;
-    const text = encodeURIComponent(
-        `🎉 VEM COMIGO NESSA FESTA! 🎉\n\nJuju & Thai tão fazendo aniversário!\n\n📅 16 de MAIO\n🕕 17h\n🔥 Família, Amigos, Resenha, Música boa!\n\nCLICA AQUI → ${url}\n\nQuanto mais gente, melhor! 🎊`
-    );
+if (shareBtn) {
+    shareBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const url = window.location.href;
+        const message = `🎉 VEM COMIGO NESSA FESTA! 🎉
 
-    // Tentar usar Web Share API (mobile)
-    if (navigator.share) {
-        navigator.share({
-            title: 'Aniversário Juju & Thai',
-            text: 'Vem comigo nessa festa!',
-            url: url,
-        }).catch(err => console.log('Erro ao compartilhar:', err));
-    } else {
-        // Fallback: Abrir WhatsApp
-        const whatsappUrl = `https://wa.me/?text=${text}`;
-        window.open(whatsappUrl, '_blank');
-    }
-});
+Juju & Thai tão fazendo aniversário!
+
+📅 16 de MAIO
+🕕 17h
+🔥 Família, Amigos, Resenha, Música boa!
+
+Clica aqui → ${url}
+
+Quanto mais gente, melhor! 🎊`;
+
+        const text = encodeURIComponent(message);
+
+        // Detectar se é mobile
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        if (navigator.share) {
+            navigator.share({
+                title: 'Aniversário Juju & Thai',
+                text: 'Vem comigo nessa festa!',
+                url: url,
+            }).catch(err => console.log('Compartilhamento cancelado'));
+        } else {
+            // WhatsApp Web ou App
+            const whatsappUrl = isMobile 
+                ? `https://wa.me/?text=${text}`
+                : `https://web.whatsapp.com/send?text=${text}`;
+            
+            window.open(whatsappUrl, '_blank');
+        }
+    });
+}
 
 // ========================================
 // DETECÇÃO DE TEMA E DARK MODE
