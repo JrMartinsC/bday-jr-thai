@@ -355,10 +355,14 @@ body {
     box-shadow: var(--shadow-md);
     border-left: 5px solid var(--primary-warm);
     display: flex;
-    align-items: flex-start;
-    gap: 20px;
+    flex-direction: column;          
+    align-items: center;           
+    justify-content: center;          
+    text-align: center;               
+    gap: 15px;                       
     transition: all 0.3s ease;
     animation: fadeInUp 0.6s ease-out;
+    min-height: 280px;  
 }
 
 .info-card:hover {
@@ -1052,6 +1056,16 @@ body {
 
 /* Celulares pequenos até 480px */
 @media (max-width: 480px) {
+    .info-card {
+        min-height: 250px;      
+        padding: 20px;
+        gap: 12px;
+    }
+    
+    .info-content h3 {
+        font-size: 1rem;
+    }
+   
     .container {
         padding: 10px;
     }
