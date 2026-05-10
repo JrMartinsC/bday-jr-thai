@@ -860,13 +860,14 @@ body {
     margin: 50px 0;
     box-shadow: var(--shadow-md);
     animation: fadeInUp 1.2s ease-out;
+    border: 2px solid rgba(0, 127, 63, 0.3);
 }
 
 .messages-title {
     font-family: 'Montserrat', sans-serif;
     font-size: 1.8rem;
     font-weight: 800;
-    text-align: center;
+    text-align: center; 
     color: var(--primary-dark);
     margin-bottom: 30px;
 }
