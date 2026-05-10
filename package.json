@@ -1,0 +1,19 @@
+{
+  "name": "aniversario-tarim",
+  "version": "1.0.0",
+  "description": "Mini site de confirmação de presença para aniversário da Tarim - Churrasco & Pagode",
+  "main": "index.html",
+  "scripts": {
+    "serve": "python -m http.server 8000",
+    "build": "echo 'Static site - no build needed'"
+  },
+  "keywords": [
+    "convite",
+    "aniversario",
+    "confirmacao",
+    "festa",
+    "responsive"
+  ],
+  "author": "Júnior",
+  "license": "MIT"
+}
