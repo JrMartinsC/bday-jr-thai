@@ -312,43 +312,6 @@ loadAndDisplayData();
 setInterval(loadAndDisplayData, 30000);
 
 // ========================================
-// COMPARTILHAMENTO
-// ========================================
-
-document.addEventListener('DOMContentLoaded', function() {
-    const shareBtn = document.getElementById('shareBtn');
-
-    if (shareBtn) {
-        shareBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const url = window.location.href;
-            const message = `🎉 VEM COMIGO NESSA FESTA! 🎉\n\nJuju & Thai tão fazendo aniversário!\n\n📅 16 de MAIO\n🕕 17h\n🔥 Família, Amigos, Resenha, Música boa!\n\nClica aqui → ${url}\n\nQuanto mais gente, melhor! 🎊`;
-
-            const text = encodeURIComponent(message);
-
-            // Detectar se é mobile
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Aniversário Juju & Thai',
-                    text: 'Vem comigo nessa festa!',
-                    url: url,
-                }).catch(err => console.log('Compartilhamento cancelado'));
-            } else {
-                // WhatsApp Web ou App
-                const whatsappUrl = isMobile 
-                    ? `https://wa.me/?text=${text}`
-                    : `https://web.whatsapp.com/send?text=${text}`;
-                
-                window.open(whatsappUrl, '_blank');
-            }
-        });
-    }
-});
-
-// ========================================
 // DETECÇÃO DE TEMA E DARK MODE
 // ========================================
 
