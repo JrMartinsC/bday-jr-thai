@@ -8,7 +8,7 @@ const EVENT_DATE = new Date(2026, 4, 16, 17, 0, 0);
 
 // URL do seu Google Apps Script (será preenchido depois)
 // Formato: https://script.google.com/macros/d/SEU_SCRIPT_ID/userweb?v=1
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxpKixf653bN-gQwJr1zPcDuaGF3HGbDdG26IKBwtsexVHW_pTG5z1i0ozZMMgLUvJ5rA/userweb?v=1';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzy0SwWw39LZIfBxixxKwcAf_YQhH25KEmYF-9TTfue0LGnFrTsedYcHtijPdBSq5zUug/userweb';
 
 // Frases engraçadas para rotacionar
 const FUNNY_QUOTES = [
