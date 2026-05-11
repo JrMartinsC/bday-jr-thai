@@ -3,12 +3,10 @@
 // ========================================
 
 // DATA DO EVENTO (16 de Maio, 17h)
-// Ajuste o ano se necessário
 const EVENT_DATE = new Date(2026, 4, 16, 17, 0, 0);
 
-// URL do seu Google Apps Script (será preenchido depois)
+// URL do seu Google Apps Script
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbys_sinD2SXvqETt1LmrZz-p_nos_6UeK-MRCHziAyJTSklQybaceAAY70IysfL1I0vNA/exec';
-
 
 // Frases engraçadas para rotacionar
 const FUNNY_QUOTES = [
@@ -34,15 +32,16 @@ function updateCountdown() {
     const distance = eventTime - now;
 
     if (distance < 0) {
-        // Evento já aconteceu
         document.getElementById('days').textContent = '00';
         document.getElementById('hours').textContent = '00';
         document.getElementById('minutes').textContent = '00';
         document.getElementById('seconds').textContent = '00';
         
         const countdownSection = document.getElementById('countdownSection');
-        const label = countdownSection.querySelector('.countdown-label');
-        label.textContent = 'O evento está acontecendo agora! 🎉';
+        if (countdownSection) {
+            const label = countdownSection.querySelector('.countdown-label');
+            if (label) label.textContent = 'O evento está acontecendo agora! 🎉';
+        }
         return;
     }
 
@@ -51,15 +50,19 @@ function updateCountdown() {
     const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-    document.getElementById('days').textContent = String(days).padStart(2, '0');
-    document.getElementById('hours').textContent = String(hours).padStart(2, '0');
-    document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
-    document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+    const daysEl = document.getElementById('days');
+    const hoursEl = document.getElementById('hours');
+    const minutesEl = document.getElementById('minutes');
+    const secondsEl = document.getElementById('seconds');
+
+    if (daysEl) daysEl.textContent = String(days).padStart(2, '0');
+    if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
+    if (minutesEl) minutesEl.textContent = String(minutes).padStart(2, '0');
+    if (secondsEl) secondsEl.textContent = String(seconds).padStart(2, '0');
 }
 
-// Atualizar countdown a cada segundo
 setInterval(updateCountdown, 1000);
-updateCountdown(); // Primeira atualização imediata
+updateCountdown();
 
 // ========================================
 // ROTAÇÃO DE FRASES ENGRAÇADAS
@@ -67,6 +70,8 @@ updateCountdown(); // Primeira atualização imediata
 
 function rotateQuotes() {
     const quoteContainer = document.getElementById('quoteContainer');
+    if (!quoteContainer) return;
+    
     const currentIndex = Math.floor(Math.random() * FUNNY_QUOTES.length);
     
     quoteContainer.style.animation = 'none';
@@ -80,7 +85,6 @@ function rotateQuotes() {
     }, 300);
 }
 
-// Rotacionar frases a cada 10 segundos
 setInterval(rotateQuotes, 10000);
 
 // ========================================
@@ -147,25 +151,35 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Mostrar loading
-            submitBtn.classList.add('loading');
-            submitBtn.disabled = true;
+            if (submitBtn) {
+                submitBtn.classList.add('loading');
+                submitBtn.disabled = true;
+            }
 
             try {
                 // Enviar para Google Sheets
                 await sendToGoogleSheets(formData);
 
                 // Mostrar mensagem de sucesso
-                showSuccessMessage(formData, successMessage, form, companionsInput);
+                showSuccessMessage(formData, successMessage);
 
                 // Resetar form
                 form.reset();
                 if (companionsInput) companionsInput.value = '0';
+
+                // Recarregar dados
+                setTimeout(() => {
+                    loadAndDisplayData();
+                }, 1000);
+
             } catch (error) {
                 console.error('Erro ao enviar:', error);
                 alert('Houve um erro ao confirmar sua presença. Tenta novamente! 😅');
             } finally {
-                submitBtn.classList.remove('loading');
-                submitBtn.disabled = false;
+                if (submitBtn) {
+                    submitBtn.classList.remove('loading');
+                    submitBtn.disabled = false;
+                }
             }
         });
     }
@@ -179,10 +193,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Carregar dados
     loadAndDisplayData();
-    setInterval(loadAndDisplayData, 30000);
+    setInterval(loadAndDisplayData, 10000); // Atualiza a cada 10 segundos
 });
 
-// Enviar dados para Google Apps Script
+// ========================================
+// GOOGLE SHEETS INTEGRATION
+// ========================================
+
 async function sendToGoogleSheets(data) {
     console.log('Enviando dados...', data);
     
@@ -210,7 +227,6 @@ async function sendToGoogleSheets(data) {
     }
 }
 
-// Fallback: Salvar em localStorage
 function saveToLocalStorage(data) {
     let responses = JSON.parse(localStorage.getItem('confirmacoes') || '[]');
     responses.push(data);
@@ -218,38 +234,24 @@ function saveToLocalStorage(data) {
     console.log('Dados salvos em localStorage');
 }
 
-// Mostrar mensagem de sucesso
-function showSuccessMessage(data, successMessage, form, companionsInput) {
+function showSuccessMessage(data, successMessage) {
     if (!successMessage) return;
     
     const successText = document.getElementById('successText');
-    const totalGuests = parseInt(data.companions) + 1;
     
-    let mensaje = `Confirmado, ${data.name}! `;
-    if (data.attending === 'Confirmado') {
-        mensaje += totalGuests === 1 
-            ? 'Te aguardamos! 😎'
-            : `Você + ${data.companions} acompanhante${data.companions !== 1 ? 's' : ''}. Que show! 🎉`;
-    } else if (data.attending === 'Talvez') {
-        mensaje += 'Tá na dúvida, mas tá bom! Avisa depois, não deixa pra última! 😊';
-    } else {
-        mensaje += 'Que pena, mas tudo bem! Fica para a próxima! 💔';
-    }
-
     if (successText) {
         successText.textContent = 'Sua presença foi anotada! O casal ficou feliz!';
     }
     
     successMessage.classList.add('show');
     
-    // Fechar após 3 segundos automaticamente
     setTimeout(() => {
         successMessage.classList.remove('show');
     }, 3000);
 }
 
 // ========================================
-// CARREGAR DADOS DO LOCALSTORAGE
+// CARREGAR E EXIBIR DADOS
 // ========================================
 
 function loadAndDisplayData() {
@@ -259,23 +261,25 @@ function loadAndDisplayData() {
     displayMessages(responses);
 }
 
-// Atualizar estatísticas
 function updateStats(responses) {
     const confirmed = responses.filter(r => r.attending === 'Confirmado').length;
     const unconfirmed = responses.filter(r => r.attending === 'Não Confirmado').length;
     const maybe = responses.filter(r => r.attending === 'Talvez').length;
-    const guests = responses.reduce((sum, r) => sum + (parseInt(r.companions) || 0), 0);
 
-    document.getElementById('confirmedCount').textContent = confirmed;
-    document.getElementById('unconfirmedCount').textContent = unconfirmed;
-    document.getElementById('maybeCount').textContent = maybe;
-    document.getElementById('guestCount').textContent = guests;
+    const confirmedEl = document.getElementById('confirmedCount');
+    const unconfirmedEl = document.getElementById('unconfirmedCount');
+    const maybeEl = document.getElementById('maybeCount');
+
+    if (confirmedEl) confirmedEl.textContent = confirmed;
+    if (unconfirmedEl) unconfirmedEl.textContent = unconfirmed;
+    if (maybeEl) maybeEl.textContent = maybe;
 }
 
-// Exibir mensagens
 function displayMessages(responses) {
     const messagesWithText = responses.filter(r => r.message && r.message.trim());
     const container = document.getElementById('messagesContainer');
+
+    if (!container) return;
 
     if (messagesWithText.length === 0) {
         container.innerHTML = '<div class="no-messages"><p>Ainda ninguém deixou recado... Seja o primeiro! 😊</p></div>';
@@ -293,7 +297,6 @@ function displayMessages(responses) {
     `).join('');
 }
 
-// Escape HTML para segurança
 function escapeHtml(text) {
     const map = {
         '&': '&amp;',
@@ -305,41 +308,6 @@ function escapeHtml(text) {
     return text.replace(/[&<>"']/g, m => map[m]);
 }
 
-// Carregar dados ao iniciar
-loadAndDisplayData();
-
-// Recarregar dados a cada 30 segundos (simulando sincronização com Sheets)
-setInterval(loadAndDisplayData, 30000);
-
-// ========================================
-// DETECÇÃO DE TEMA E DARK MODE
-// ========================================
-
-// Detectar preferência do sistema
-if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    // O usuário prefere dark mode, mas nosso site é otimizado para light
-    // Você pode adicionar suporte a dark mode aqui se desejar
-}
-
-// ========================================
-// ANIMAÇÕES NA ENTRADA
-// ========================================
-
-// Animar elementos conforme entram no viewport
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px',
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.animation = entry.target.style.animation;
-            observer.unobserve(entry.target);
-        }
-    });
-}, observerOptions);
-
 // ========================================
 // INICIALIZAÇÃO
 // ========================================
@@ -347,33 +315,14 @@ const observer = new IntersectionObserver((entries) => {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🎉 Site do aniversário carregado com sucesso!');
     console.log('📱 Responsivo em todos os dispositivos');
-    console.log('📊 Integração com Google Sheets configurável');
+    console.log('📊 Integração com Google Sheets configurada');
 });
 
 // ========================================
-// VERIFICAR CONEXÃO E SINCRONIZAÇÃO
+// VERIFICAR CONEXÃO
 // ========================================
 
-// Verificar se há dados não sincronizados
 window.addEventListener('online', () => {
     console.log('Conexão restaurada! Sincronizando dados...');
-    syncPendingData();
+    loadAndDisplayData();
 });
-
-function syncPendingData() {
-    const responses = JSON.parse(localStorage.getItem('confirmacoes') || '[]');
-    if (responses.length > 0 && GOOGLE_SCRIPT_URL) {
-        console.log('Sincronizando dados com Google Sheets...');
-        // Aqui você pode implementar sincronização automática
-    }
-}
-
-// ========================================
-// SUPORTE A PWA (Progressive Web App)
-// ========================================
-
-// Registrar service worker se disponível
-if ('serviceWorker' in navigator) {
-    // Você pode criar um service worker para offline support
-    // navigator.serviceWorker.register('sw.js');
-}
