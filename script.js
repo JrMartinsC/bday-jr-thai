@@ -242,7 +242,7 @@ function showSuccessMessage(data, successMessage) {
     
     setTimeout(() => {
         successMessage.classList.remove('show');
-    }, 3000);
+    }, 10000);
 }
 
 // ========================================
