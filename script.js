@@ -5,8 +5,11 @@
 // DATA DO EVENTO (16 de Maio, 17h)
 const EVENT_DATE = new Date(2026, 4, 16, 17, 0, 0);
 
-// URL do seu Google Apps Script
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyxK-B8Dli7ByDkTCpMbz5LMN7iSg8m7EPcf8YRZYVYrJsXJlqdlYFeQNYA108EEYnnmQ/exec';
+// URL do seu Google Apps Script (POST - receber dados)
+const GOOGLE_SCRIPT_POST_URL = 'https://script.google.com/macros/s/AKfycbys_sinD2SXvqETt1LmrZz-p_nos_6UeK-MRCHziAyJTSklQybaceAAY70IysfL1I0vNA/exec';
+
+// URL do seu Google Apps Script (GET - buscar dados)
+const GOOGLE_SCRIPT_GET_URL = 'https://script.google.com/macros/s/AKfycbyxK-B8Dli7ByDkTCpMbz5LMN7iSg8m7EPcf8YRZYVYrJsXJlqdlYFeQNYA108EEYnnmQ/exec';
 
 // Frases engraçadas para rotacionar
 const FUNNY_QUOTES = [
@@ -167,10 +170,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 form.reset();
                 if (companionsInput) companionsInput.value = '0';
 
-                // Recarregar dados
+                // Recarregar dados após 2 segundos
                 setTimeout(() => {
                     loadAndDisplayData();
-                }, 1000);
+                }, 2000);
 
             } catch (error) {
                 console.error('Erro ao enviar:', error);
@@ -191,9 +194,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Carregar dados
+    // Carregar dados iniciais
     loadAndDisplayData();
-    setInterval(loadAndDisplayData, 10000); // Atualiza a cada 10 segundos
+    
+    // Atualizar dados a cada 5 segundos
+    setInterval(loadAndDisplayData, 5000);
 });
 
 // ========================================
@@ -203,14 +208,13 @@ document.addEventListener('DOMContentLoaded', function() {
 async function sendToGoogleSheets(data) {
     console.log('Enviando dados...', data);
     
-    if (!GOOGLE_SCRIPT_URL) {
-        console.warn('Google Script URL não configurada. Usando localStorage como fallback.');
-        saveToLocalStorage(data);
+    if (!GOOGLE_SCRIPT_POST_URL) {
+        console.warn('Google Script URL não configurada.');
         return;
     }
 
     try {
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
+        const response = await fetch(GOOGLE_SCRIPT_POST_URL, {
             method: 'POST',
             mode: 'no-cors',
             headers: {
@@ -220,18 +224,9 @@ async function sendToGoogleSheets(data) {
         });
 
         console.log('Dados enviados para Google Sheets');
-        saveToLocalStorage(data);
     } catch (error) {
         console.error('Erro ao enviar para Sheets:', error);
-        saveToLocalStorage(data);
     }
-}
-
-function saveToLocalStorage(data) {
-    let responses = JSON.parse(localStorage.getItem('confirmacoes') || '[]');
-    responses.push(data);
-    localStorage.setItem('confirmacoes', JSON.stringify(responses));
-    console.log('Dados salvos em localStorage');
 }
 
 function showSuccessMessage(data, successMessage) {
@@ -251,15 +246,29 @@ function showSuccessMessage(data, successMessage) {
 }
 
 // ========================================
-// CARREGAR E EXIBIR DADOS
+// BUSCAR DADOS DA PLANILHA
 // ========================================
 
-function loadAndDisplayData() {
-    const responses = JSON.parse(localStorage.getItem('confirmacoes') || '[]');
-    
-    updateStats(responses);
-    displayMessages(responses);
+async function loadAndDisplayData() {
+    try {
+        // Buscar dados da planilha
+        const response = await fetch(GOOGLE_SCRIPT_GET_URL + '?action=getData');
+        const result = await response.json();
+
+        console.log('Dados carregados:', result);
+
+        if (result.success && result.data) {
+            updateStats(result.data);
+            displayMessages(result.data);
+        }
+    } catch (error) {
+        console.error('Erro ao buscar dados:', error);
+    }
 }
+
+// ========================================
+// ATUALIZAR ESTATÍSTICAS
+// ========================================
 
 function updateStats(responses) {
     const confirmed = responses.filter(r => r.attending === 'Confirmado').length;
@@ -273,10 +282,16 @@ function updateStats(responses) {
     if (confirmedEl) confirmedEl.textContent = confirmed;
     if (unconfirmedEl) unconfirmedEl.textContent = unconfirmed;
     if (maybeEl) maybeEl.textContent = maybe;
+
+    console.log(`Stats: Confirmados=${confirmed}, Não Confirmados=${unconfirmed}, Talvez=${maybe}`);
 }
 
+// ========================================
+// EXIBIR MENSAGENS (RECADINHOS)
+// ========================================
+
 function displayMessages(responses) {
-    const messagesWithText = responses.filter(r => r.message && r.message.trim());
+    const messagesWithText = responses.filter(r => r.message && String(r.message).trim());
     const container = document.getElementById('messagesContainer');
 
     if (!container) return;
@@ -289,13 +304,19 @@ function displayMessages(responses) {
     container.innerHTML = messagesWithText.map((response, index) => `
         <div class="message-card" style="animation-delay: ${index * 0.1}s">
             <div class="message-header">
-                <span class="message-name">${escapeHtml(response.name)}</span>
-                <span class="message-status">${response.attending}</span>
+                <span class="message-name">${escapeHtml(String(response.name))}</span>
+                <span class="message-status">${escapeHtml(String(response.attending))}</span>
             </div>
-            <p class="message-text">"${escapeHtml(response.message)}"</p>
+            <p class="message-text">"${escapeHtml(String(response.message))}"</p>
         </div>
     `).join('');
+
+    console.log(`${messagesWithText.length} mensagens exibidas`);
 }
+
+// ========================================
+// ESCAPE HTML
+// ========================================
 
 function escapeHtml(text) {
     const map = {
@@ -305,7 +326,7 @@ function escapeHtml(text) {
         '"': '&quot;',
         "'": '&#039;',
     };
-    return text.replace(/[&<>"']/g, m => map[m]);
+    return String(text).replace(/[&<>"']/g, m => map[m]);
 }
 
 // ========================================
@@ -315,7 +336,7 @@ function escapeHtml(text) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🎉 Site do aniversário carregado com sucesso!');
     console.log('📱 Responsivo em todos os dispositivos');
-    console.log('📊 Integração com Google Sheets configurada');
+    console.log('📊 Buscando dados da planilha...');
 });
 
 // ========================================
