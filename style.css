@@ -1232,3 +1232,41 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* ========================================
+   VALIDAÇÃO DO RADIO GROUP
+   ======================================== */
+
+@keyframes radioShake {
+    0%, 100% { transform: translateX(0); }
+    15%       { transform: translateX(-8px); }
+    30%       { transform: translateX(8px); }
+    45%       { transform: translateX(-6px); }
+    60%       { transform: translateX(6px); }
+    75%       { transform: translateX(-3px); }
+    90%       { transform: translateX(3px); }
+}
+
+.radio-group.radio-error {
+    animation: radioShake 0.5s ease;
+    border: 2px dashed #e53935;
+    border-radius: 12px;
+    padding: 10px;
+    background: rgba(229, 57, 53, 0.05);
+}
+
+.radio-group.radio-error .radio-label {
+    border-color: rgba(229, 57, 53, 0.3);
+}
+
+.radio-error-msg {
+    margin-top: 8px;
+    color: #e53935;
+    font-size: 0.92rem;
+    font-weight: 600;
+    text-align: center;
+    animation: fadeIn 0.3s ease;
+    background: rgba(229, 57, 53, 0.08);
+    border-radius: 8px;
+    padding: 8px 12px;
+}
