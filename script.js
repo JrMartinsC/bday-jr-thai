@@ -132,24 +132,29 @@ document.addEventListener('DOMContentLoaded', function() {
             const nameInput = document.getElementById('name');
             const messageInput = document.getElementById('message');
             const attendingInput = document.querySelector('input[name="attending"]:checked');
-
             const radioGroup = form.querySelector('.radio-group');
 
+            // Remove erro anterior se existir
             const existingError = form.querySelector('.radio-error-msg');
             if (existingError) existingError.remove();
             if (radioGroup) radioGroup.classList.remove('radio-error');
-            
+
+            // Valida se selecionou uma opção
             if (!attendingInput) {
                 if (radioGroup) {
+                    // Adiciona classe de erro (borda + shake)
                     radioGroup.classList.add('radio-error');
-            
+
+                    // Insere mensagem de erro logo abaixo do radio group
                     const errorMsg = document.createElement('p');
                     errorMsg.className = 'radio-error-msg';
                     errorMsg.innerHTML = '👆 Clica em uma das opções acima antes de confirmar!';
                     radioGroup.insertAdjacentElement('afterend', errorMsg);
-            
+
+                    // Scroll suave até o radio group
                     radioGroup.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            
+
+                    // Remove o erro automaticamente após 5s
                     setTimeout(() => {
                         radioGroup.classList.remove('radio-error');
                         errorMsg.remove();
@@ -157,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 return;
             }
-            
+
             if (!nameInput || !nameInput.value.trim()) {
                 alert('Por favor, preenche seu nome! 😊');
                 return;
